@@ -39,7 +39,15 @@ fn parse_line_number(line: &String, y: usize) -> Vec<Marking<usize>> {
     ret
 }
 
-fn parse_line_symbol(line: &String, y: usize) -> Vec<Marking<()>> {
+fn parse_numbers(lines: &Vec<String>) -> Vec<Marking<usize>> {
+    lines
+        .into_iter()
+        .enumerate()
+        .flat_map(|(index, line)| parse_line_number(line, index))
+        .collect()
+}
+
+fn parse_line_symbol(line: &String, y: usize) -> Vec<Marking<bool>> {
     line.chars()
         .enumerate()
         .filter_map(|(index, char)| {
@@ -47,7 +55,7 @@ fn parse_line_symbol(line: &String, y: usize) -> Vec<Marking<()>> {
                 None
             } else {
                 Some(Marking {
-                    value: (),
+                    value: char == '*',
                     y: y,
                     minx: index,
                     maxx: index,
@@ -57,33 +65,61 @@ fn parse_line_symbol(line: &String, y: usize) -> Vec<Marking<()>> {
         .collect()
 }
 
-fn run_first(lines: Vec<String>) -> usize {
-    let numbers: Vec<Marking<usize>> = (&lines)
-        .into_iter()
-        .enumerate()
-        .flat_map(|(index, line)| parse_line_number(line, index))
-        .collect();
-    let symbols: Vec<Marking<()>> = (&lines)
+fn parse_symbols(lines: &Vec<String>) -> Vec<Marking<bool>> {
+    lines
         .into_iter()
         .enumerate()
         .flat_map(|(index, line)| parse_line_symbol(line, index))
-        .collect();
+        .collect()
+}
+
+fn adjacent(num: &Marking<usize>, sym: &Marking<bool>) -> bool {
+    (num.y as i32 - sym.y as i32).abs() <= 1
+        && (num.minx <= sym.minx + 1)
+        && (num.maxx + 1 >= sym.minx)
+}
+
+fn run_first(lines: &Vec<String>) -> usize {
+    let numbers = parse_numbers(lines);
+    let symbols = parse_symbols(lines);
 
     numbers
         .into_iter()
         .filter(|number| {
-            (&symbols).into_iter().any(|symbol| {
-                (number.y as i32 - symbol.y as i32).abs() <= 1
-                    && (number.minx <= symbol.minx + 1)
-                    && (number.maxx + 1 >= symbol.minx)
-            })
+            (&symbols)
+                .into_iter()
+                .any(|symbol| adjacent(number, symbol))
         })
         .map(|number| number.value)
-        .sum::<usize>()
+        .sum()
+}
+
+fn run_second(lines: &Vec<String>) -> usize {
+    let numbers = parse_numbers(lines);
+    let symbols = parse_symbols(lines);
+
+    (&symbols)
+        .into_iter()
+        .filter_map(|symbol| {
+            if !symbol.value {
+                None::<usize>
+            } else {
+                let adj_nums: Vec<&Marking<usize>> = (&numbers)
+                    .into_iter()
+                    .filter(|number| adjacent(number, symbol))
+                    .collect();
+                match adj_nums[..] {
+                    [a, b] => Some(a.value * b.value),
+                    _ => None,
+                }
+            }
+        })
+        .sum()
 }
 
 fn run_main(lines: Vec<String>) {
-    println!("{}", run_first(lines));
+    println!("{}", run_first(&lines));
+    println!("{}", run_second(&lines));
 }
 
 fn lines_from_file(filename: impl AsRef<Path>) -> Vec<String> {
