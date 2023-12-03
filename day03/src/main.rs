@@ -15,24 +15,16 @@ struct Marking<T> {
     pub maxx: usize,
 }
 
-fn parse_line_number(line: String, y: usize) -> Vec<Marking<usize>> {
+fn parse_line_number(line: &String, y: usize) -> Vec<Marking<usize>> {
     let mut ret = Vec::<Marking<usize>>::new();
     for (_key, group) in &line
         .chars()
         .enumerate()
         .group_by(|(_index, char)| (*char).is_numeric())
     {
-        let vector = group.collect::<Vec<(usize, char)>>();
-        let string = vector
-            .clone()
-            .into_iter()
-            .map(|(_index, char)| char)
-            .collect::<String>();
-        let indexes = vector
-            .clone()
-            .into_iter()
-            .map(|(index, _char)| index)
-            .collect::<Vec<usize>>();
+        let vector: Vec<(usize, char)> = group.collect();
+        let string: String = (&vector).into_iter().map(|(_index, char)| char).collect();
+        let indexes: Vec<usize> = (&vector).into_iter().map(|(index, _char)| *index).collect();
         let minx = indexes.first().unwrap_or(&(0 as usize));
         let maxx = indexes.last().unwrap_or(&(0 as usize));
         string.parse::<usize>().ok().map(|value| {
@@ -47,7 +39,7 @@ fn parse_line_number(line: String, y: usize) -> Vec<Marking<usize>> {
     ret
 }
 
-fn parse_line_symbol(line: String, y: usize) -> Vec<Marking<()>> {
+fn parse_line_symbol(line: &String, y: usize) -> Vec<Marking<()>> {
     line.chars()
         .enumerate()
         .filter_map(|(index, char)| {
@@ -62,22 +54,20 @@ fn parse_line_symbol(line: String, y: usize) -> Vec<Marking<()>> {
                 })
             }
         })
-        .collect::<Vec<Marking<()>>>()
+        .collect()
 }
 
 fn run_first(lines: Vec<String>) -> usize {
-    let numbers = lines
-        .clone()
+    let numbers: Vec<Marking<usize>> = (&lines)
         .into_iter()
         .enumerate()
         .flat_map(|(index, line)| parse_line_number(line, index))
-        .collect::<Vec<Marking<usize>>>();
-    let symbols = lines
-        .clone()
+        .collect();
+    let symbols: Vec<Marking<()>> = (&lines)
         .into_iter()
         .enumerate()
         .flat_map(|(index, line)| parse_line_symbol(line, index))
-        .collect::<Vec<Marking<()>>>();
+        .collect();
 
     numbers
         .into_iter()
