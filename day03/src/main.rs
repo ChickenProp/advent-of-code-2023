@@ -8,15 +8,15 @@ use std::{
 };
 
 #[derive(Debug)]
-struct Number<T> {
+struct Marking<T> {
     pub value: T,
     pub y: usize,
     pub minx: usize,
     pub maxx: usize,
 }
 
-fn parse_line_number(line: String, y: usize) -> Vec<Number<usize>> {
-    let mut ret = Vec::<Number<usize>>::new();
+fn parse_line_number(line: String, y: usize) -> Vec<Marking<usize>> {
+    let mut ret = Vec::<Marking<usize>>::new();
     for (_key, group) in &line
         .chars()
         .enumerate()
@@ -36,7 +36,7 @@ fn parse_line_number(line: String, y: usize) -> Vec<Number<usize>> {
         let minx = indexes.first().unwrap_or(&(0 as usize));
         let maxx = indexes.last().unwrap_or(&(0 as usize));
         string.parse::<usize>().ok().map(|value| {
-            ret.push(Number {
+            ret.push(Marking {
                 value,
                 y,
                 minx: *minx,
@@ -47,14 +47,14 @@ fn parse_line_number(line: String, y: usize) -> Vec<Number<usize>> {
     ret
 }
 
-fn parse_line_symbol(line: String, y: usize) -> Vec<Number<()>> {
+fn parse_line_symbol(line: String, y: usize) -> Vec<Marking<()>> {
     line.chars()
         .enumerate()
         .filter_map(|(index, char)| {
             if (char >= '0' && char <= '9') || char == '.' {
                 None
             } else {
-                Some(Number {
+                Some(Marking {
                     value: (),
                     y: y,
                     minx: index,
@@ -62,7 +62,7 @@ fn parse_line_symbol(line: String, y: usize) -> Vec<Number<()>> {
                 })
             }
         })
-        .collect::<Vec<Number<()>>>()
+        .collect::<Vec<Marking<()>>>()
 }
 
 fn run_first(lines: Vec<String>) -> usize {
@@ -71,13 +71,13 @@ fn run_first(lines: Vec<String>) -> usize {
         .into_iter()
         .enumerate()
         .flat_map(|(index, line)| parse_line_number(line, index))
-        .collect::<Vec<Number<usize>>>();
+        .collect::<Vec<Marking<usize>>>();
     let symbols = lines
         .clone()
         .into_iter()
         .enumerate()
         .flat_map(|(index, line)| parse_line_symbol(line, index))
-        .collect::<Vec<Number<()>>>();
+        .collect::<Vec<Marking<()>>>();
 
     numbers
         .into_iter()
